@@ -19,12 +19,7 @@ function formatarMoeda(valor) {
 }
 
 function gerarFaturaStr (fatura, pecas) {
-    let totalFatura = 0;
-    let creditos = 0;
-    let faturaStr = `Fatura ${fatura.cliente}\n`;
-    for (let apre of fatura.apresentacoes) {
-      // const peca = getPeca(apre);
-      function calcularTotalApresentacao(apre) {
+    function calcularTotalApresentacao(apre) {
         let total = 0;
         switch (getPeca(apre).tipo) {
         case "tragedia":
@@ -44,18 +39,28 @@ function gerarFaturaStr (fatura, pecas) {
             throw new Error(`Peça desconhecia: ${getPeca(apre).tipo}`);
         }
         return total;
+  }
+  function calcularTotalFatura() {
+      let totalFatura = 0;
+      for (let apre of fatura.apresentacoes) {
+        totalFatura += calcularTotalApresentacao(apre);
       }
-
-      let total = calcularTotalApresentacao(apre, getPeca(apre));
-  
-      // mais uma linha da fatura
-      faturaStr += `  ${getPeca(apre).nome}: ${formatarMoeda(total/100)} (${apre.audiencia} assentos)\n`;
-      totalFatura += total;
-      creditos += calcularCreditos(apre);
-    }
-    faturaStr += `Valor total: ${formatarMoeda(totalFatura/100)}\n`;
-    faturaStr += `Créditos acumulados: ${creditos} \n`;
-    return faturaStr;
+      return totalFatura;
+  }
+  function calcularTotalCreditos() {
+      let totalCreditos = 0;
+      for (let apre of fatura.apresentacoes) {
+        totalCreditos += calcularCreditos(apre);
+      }
+      return totalCreditos;
+  }
+  let faturaStr = `Fatura ${fatura.cliente}\n`;
+  for (let apre of fatura.apresentacoes) {
+    faturaStr += `  ${getPeca(apre).nome}: ${formatarMoeda(calcularTotalApresentacao(apre))} (${apre.audiencia} assentos)\n`;
+  }
+  faturaStr += `Valor total: ${formatarMoeda(calcularTotalFatura())}\n`;
+  faturaStr += `Créditos acumulados: ${calcularTotalCreditos()} \n`;
+  return faturaStr;
   }
 
 const faturas = JSON.parse(readFileSync('./faturas.json'));
